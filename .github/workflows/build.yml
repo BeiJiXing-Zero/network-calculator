@@ -1,0 +1,31 @@
+name: 打包网络计算器 EXE
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 安装 PyInstaller
+        run: pip install pyinstaller
+
+      - name: 打包成 EXE
+        run: pyinstaller --onefile --windowed --name "网络计算器" network_calculator.py
+
+      - name: 上传 EXE 文件
+        uses: actions/upload-artifact@v4
+        with:
+          name: 网络计算器EXE
+          path: dist/网络计算器.exe
