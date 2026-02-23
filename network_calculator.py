@@ -448,7 +448,16 @@ class HistoryManager:
         try:
             if self.path.exists():
                 with open(self.path, "r", encoding="utf-8") as f:
-                    self.records = json.load(f)
+                    data = json.load(f)
+                # 过滤掉缺少必要字段的旧记录，避免 KeyError
+                self.records = [
+                    r for r in data
+                    if isinstance(r, dict) and "type" in r and "summary" in r
+                ]
+                # 补全缺失字段
+                for r in self.records:
+                    r.setdefault("time", "")
+                    r.setdefault("payload", {})
         except:
             self.records = []
 
@@ -1733,11 +1742,11 @@ class HistoryTab(tk.Frame):
 
             hdr = tk.Frame(inner, bg=CARD_BG)
             hdr.pack(fill="x")
-            tk.Label(hdr, text=f"[{rec['type']}]", font=F(11, bold=True),
+            tk.Label(hdr, text=f"[{rec.get('type', '未知')}]", font=F(11, bold=True),
                      bg=CARD_BG, fg=BLUE).pack(side="left")
-            tk.Label(hdr, text=rec["time"], font=F(10), bg=CARD_BG, fg=TEXT_SEC).pack(side="right")
+            tk.Label(hdr, text=rec.get("time", ""), font=F(10), bg=CARD_BG, fg=TEXT_SEC).pack(side="right")
 
-            tk.Label(inner, text=rec["summary"], font=F(12, mono=True),
+            tk.Label(inner, text=rec.get("summary", ""), font=F(12, mono=True),
                      bg=CARD_BG, fg=TEXT_PRI, anchor="w").pack(fill="x", pady=(4, 0))
 
             if rec.get("payload") and self._on_restore:
